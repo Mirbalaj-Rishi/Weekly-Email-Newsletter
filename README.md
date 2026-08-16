@@ -43,10 +43,19 @@ Re-activate the virtual environment (the `source .venv/...` / `Activate.ps1` lin
 
 CloudFormation can't be deployed by a GitHub Actions workflow that doesn't have permission to assume a role yet — so this bootstrap stack must be deployed manually first.
 
+Bash / Git Bash:
 ```
 export GITHUB_REPO=<owner>/<repo>        # your actual GitHub repo, once created
 export CDK_DEFAULT_ACCOUNT=<ACCOUNT_ID>
-export CDK_DEFAULT_REGION=us-east-1
+export CDK_DEFAULT_REGION=<REGION_NAME>
+cdk deploy GithubOidcStack
+```
+
+PowerShell:
+```powershell
+$env:GITHUB_REPO = "<owner>/<repo>"      # your actual GitHub repo, once created
+$env:CDK_DEFAULT_ACCOUNT = "<ACCOUNT_ID>"
+$env:CDK_DEFAULT_REGION = "<REGION_NAME>"
 cdk deploy GithubOidcStack
 ```
 
@@ -56,6 +65,7 @@ Note the deployed role's ARN (CDK prints it as a stack output) — you'll add it
 
 CloudFormation's `AWS::SSM::Parameter` resource does **not** support `SecureString` — this is a hard AWS limitation, so the CDK stack only *references* this parameter; it can't create or populate it. Set it once, manually:
 
+Bash / Git Bash:
 ```
 aws ssm put-parameter \
   --name /newsletter/recipients \
@@ -64,13 +74,26 @@ aws ssm put-parameter \
   --overwrite
 ```
 
+PowerShell (no `\` line continuation — use backtick, or keep it on one line):
+```powershell
+aws ssm put-parameter --name /newsletter/recipients --type SecureString --value "you@example.com,friend@example.com" --overwrite
+```
+
 Update this value the same way any time the list changes — it's the one piece of ongoing "terminal configuration," and it's unavoidable because the data is private and this repo is public.
 
 ### 4. Deploy the newsletter stack and verify SES identities
 
+Bash / Git Bash:
 ```
 export SENDER_EMAIL=you@example.com
 export RECIPIENT_EMAILS=you@example.com,friend@example.com   # sandbox mode only
+cdk deploy NewsletterStack
+```
+
+PowerShell:
+```powershell
+$env:SENDER_EMAIL = "you@example.com"
+$env:RECIPIENT_EMAILS = "you@example.com,friend@example.com"   # sandbox mode only
 cdk deploy NewsletterStack
 ```
 
