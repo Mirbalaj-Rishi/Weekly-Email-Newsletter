@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 
 import aws_cdk as cdk
 
@@ -27,25 +28,44 @@ env = cdk.Environment(
     region=os.environ.get("CDK_DEFAULT_REGION", "us-east-1"),
 )
 
-NewsletterStack(
-    app,
-    "NewsletterStack",
-    sender_email=sender_email,
-    recipient_emails=recipient_emails,
-    recipients_param_name=recipients_param_name,
-    env=env,
-)
+# Stacks are only instantiated once their required config is present. This
+# keeps commands that don't target a specific stack -- `cdk bootstrap`,
+# `cdk synth` / `cdk deploy` with no args, `cdk ls` -- working even before
+# SENDER_EMAIL/GITHUB_REPO are set, since the CDK CLI runs this whole file
+# for every command, not just ones that need these stacks.
+if sender_email:
+    NewsletterStack(
+        app,
+        "NewsletterStack",
+        sender_email=sender_email,
+        recipient_emails=recipient_emails,
+        recipients_param_name=recipients_param_name,
+        env=env,
+    )
+else:
+    print(
+        "Skipping NewsletterStack: SENDER_EMAIL is not set. "
+        "Set it and re-run to synth/deploy this stack.",
+        file=sys.stderr,
+    )
 
 # TODO: fill in the real GitHub "<OWNER>/<REPO>" before deploying this stack.
 # This bootstrap stack is deployed once manually (see README) so that the
 # GitHub Actions deploy role exists before any workflow tries to assume it.
 github_repo = os.environ.get("GITHUB_REPO", "<OWNER>/<REPO>")
 
-GithubOidcStack(
-    app,
-    "GithubOidcStack",
-    github_repo=github_repo,
-    env=env,
-)
+if github_repo != "<OWNER>/<REPO>":
+    GithubOidcStack(
+        app,
+        "GithubOidcStack",
+        github_repo=github_repo,
+        env=env,
+    )
+else:
+    print(
+        "Skipping GithubOidcStack: GITHUB_REPO is not set. "
+        "Set it and re-run to synth/deploy this stack.",
+        file=sys.stderr,
+    )
 
 app.synth()
