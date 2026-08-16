@@ -43,8 +43,12 @@ Re-activate the virtual environment (the `source .venv/...` / `Activate.ps1` lin
 
 CloudFormation can't be deployed by a GitHub Actions workflow that doesn't have permission to assume a role yet — so this bootstrap stack must be deployed manually first.
 
+**Run this in a terminal where you've `cd`'d into `infra/` and activated the venv** (a new terminal window starts back at the repo root with the venv inactive — `cdk` needs to run from `infra/`, where `cdk.json` lives, or it fails with `--app is required`):
+
 Bash / Git Bash:
 ```
+cd infra
+source ../.venv/Scripts/activate    # or ../.venv/bin/activate on macOS/Linux
 export GITHUB_REPO=<owner>/<repo>        # your actual GitHub repo, once created
 export CDK_DEFAULT_ACCOUNT=<ACCOUNT_ID>
 export CDK_DEFAULT_REGION=<REGION_NAME>
@@ -53,6 +57,8 @@ cdk deploy GithubOidcStack
 
 PowerShell:
 ```powershell
+cd infra
+..\.venv\Scripts\Activate.ps1
 $env:GITHUB_REPO = "<owner>/<repo>"      # your actual GitHub repo, once created
 $env:CDK_DEFAULT_ACCOUNT = "<ACCOUNT_ID>"
 $env:CDK_DEFAULT_REGION = "<REGION_NAME>"
@@ -83,8 +89,12 @@ Update this value the same way any time the list changes — it's the one piece 
 
 ### 4. Deploy the newsletter stack and verify SES identities
 
+**Run from `infra/` with the venv activated** (same as step 2 — a new terminal starts back at the repo root):
+
 Bash / Git Bash:
 ```
+cd infra
+source ../.venv/Scripts/activate    # or ../.venv/bin/activate on macOS/Linux
 export SENDER_EMAIL=you@example.com
 export RECIPIENT_EMAILS=you@example.com,friend@example.com   # sandbox mode only
 cdk deploy NewsletterStack
@@ -92,6 +102,8 @@ cdk deploy NewsletterStack
 
 PowerShell:
 ```powershell
+cd infra
+..\.venv\Scripts\Activate.ps1
 $env:SENDER_EMAIL = "you@example.com"
 $env:RECIPIENT_EMAILS = "you@example.com,friend@example.com"   # sandbox mode only
 cdk deploy NewsletterStack
