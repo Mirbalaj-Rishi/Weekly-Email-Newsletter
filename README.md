@@ -2,7 +2,7 @@
 
 A weekly newsletter sent via Amazon SES, built and deployed entirely with AWS CDK (Python). A Lambda function generates the newsletter body and sends it; an EventBridge rule triggers it every Monday at 8am ET; the recipient list lives in SSM Parameter Store, never in this repo.
 
-This repository is public. **No real email addresses, account IDs, or credentials are ever committed.** Config values are passed in via environment variables (local one-time steps) or GitHub Actions secrets (automated deploys).
+This repository is currently private, but is designed to be safe to make public later. **No real email addresses, account IDs, or credentials are ever committed.** Config values are passed in via environment variables (local one-time steps) or GitHub Actions secrets (automated deploys).
 
 ## Architecture
 
@@ -18,13 +18,26 @@ Ongoing deploys require **zero manual AWS console/terminal steps** — you just 
 
 These steps exist because of hard AWS/CloudFormation limitations (documented inline), not because of a design shortcut.
 
-### 1. Bootstrap your AWS account for CDK
+### 1. Create the virtual environment and bootstrap your AWS account for CDK
+
+This project uses a Python virtual environment (`.venv/`, gitignored) so dependencies stay isolated from your system Python.
 
 ```
+python -m venv .venv
+
+# macOS/Linux
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Windows (Git Bash)
+source .venv/Scripts/activate
+
+pip install -r infra/requirements-dev.txt   # includes pytest for local testing
 cd infra
-pip install -r requirements.txt
 cdk bootstrap aws://<ACCOUNT_ID>/<REGION>
 ```
+
+Re-activate the virtual environment (the `source .venv/...` / `Activate.ps1` line) in every new terminal session before running `cdk` or `pytest`.
 
 ### 2. Deploy the GitHub OIDC role (once, before any GitHub Actions run)
 
@@ -82,8 +95,8 @@ After this, every push to `main` automatically runs `cdk synth` + `cdk deploy` f
 ## Local development
 
 ```
+source .venv/Scripts/activate   # or .venv/bin/activate on macOS/Linux, .venv\Scripts\Activate.ps1 on PowerShell
 cd infra
-pip install -r requirements.txt
 pytest tests/
 cdk synth
 ```
