@@ -24,6 +24,28 @@ jobs:
           npm install -g aws-cdk
           pip install -r infra/requirements.txt
 
+      - name: Validate required secrets
+        run: |
+          arn="${AWS_DEPLOY_ROLE_ARN}"
+          region="${AWS_REGION}"
+          if [ -z "$region" ]; then
+            echo "::error::AWS_REGION secret is empty or unset."
+            exit 1
+          fi
+          if [ -z "$arn" ]; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN secret is empty or unset."
+            exit 1
+          fi
+          echo "AWS_DEPLOY_ROLE_ARN length: ${#arn}"
+          if ! echo "$arn" | grep -Eq '^arn:aws:iam::[0-9]{12}:role/.+$'; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN does not match the expected pattern 'arn:aws:iam::<12-digit-account-id>:role/<name>'. Check for pasted whitespace, newlines, or an accidentally-included 'StackName.Output = ' prefix."
+            exit 1
+          fi
+          echo "AWS_DEPLOY_ROLE_ARN looks well-formed."
+        env:
+          AWS_DEPLOY_ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:

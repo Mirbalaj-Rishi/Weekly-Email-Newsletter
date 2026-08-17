@@ -1,4 +1,4 @@
-from aws_cdk import Stack, aws_iam as iam
+from aws_cdk import CfnOutput, Stack, aws_iam as iam
 from constructs import Construct
 
 
@@ -75,4 +75,11 @@ class GithubOidcStack(Stack):
                 actions=["sts:AssumeRole"],
                 resources=[f"arn:aws:iam::{self.account}:role/cdk-*"],
             )
+        )
+
+        CfnOutput(
+            self,
+            "GithubActionsDeployRoleArn",
+            value=deploy_role.role_arn,
+            description="Paste this exact value into the AWS_DEPLOY_ROLE_ARN GitHub Actions secret.",
         )
