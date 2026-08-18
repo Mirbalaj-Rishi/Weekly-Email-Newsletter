@@ -3,7 +3,7 @@ from constructs import Construct
 
 
 class GithubOidcStack(Stack):
-    """One-time bootstrap: lets GitHub Actions deploy this app via OIDC
+    """One-time bootstrap done by user: lets GitHub Actions deploy this app via OIDC
     federation instead of long-lived AWS access keys. Deployed manually,
     once, before the GitHub Actions workflow can run (the workflow needs
     this role to already exist in order to assume it)."""

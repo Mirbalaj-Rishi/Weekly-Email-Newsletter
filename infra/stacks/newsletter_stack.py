@@ -15,7 +15,7 @@ from constructs import Construct
 
 class NewsletterStack(Stack):
     """Weekly newsletter: Lambda (content stub + SES send), triggered by
-    EventBridge on a weekly schedule, reading its recipient list from an
+    EventBridge (on AWS) on a weekly schedule, reading its recipient list from an
     SSM SecureString parameter that this stack does not create or populate
     (CloudFormation cannot manage SecureString values — see README)."""
 
