@@ -44,7 +44,12 @@ class NewsletterStack(Stack):
         ses.EmailIdentity(
             self, "SenderIdentity", identity=ses.Identity.email(sender_email)
         )
-        for i, recipient in enumerate(recipient_emails):
+        # Recipients that are the same address as the sender (e.g. sending
+        # the newsletter to yourself) already get an identity above — SES
+        # identities are unique per address, so creating a second one for
+        # the same address fails with "already exists in stack".
+        other_recipients = [r for r in recipient_emails if r != sender_email]
+        for i, recipient in enumerate(other_recipients):
             ses.EmailIdentity(
                 self, f"RecipientIdentity{i}", identity=ses.Identity.email(recipient)
             )
