@@ -19,6 +19,8 @@ class GithubOidcStack(Stack):
                 "deploying GithubOidcStack (see README)."
             )
 
+        owner, repo_name = github_repo.split("/", 1)
+
         provider = iam.OpenIdConnectProvider(
             self,
             "GithubOidcProvider",
@@ -39,7 +41,13 @@ class GithubOidcStack(Stack):
                         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
                     },
                     "StringLike": {
-                        "token.actions.githubusercontent.com:sub": f"repo:{github_repo}:ref:refs/heads/main"
+                        # GitHub now appends immutable numeric owner/repo IDs
+                        # to the sub claim (e.g. "repo:owner@123/repo@456:
+                        # ref:...") to prevent spoofing via repo/org deletion
+                        # and recreation. The "@*" wildcards match that ID
+                        # segment while still requiring the exact owner and
+                        # repo *names* and branch.
+                        "token.actions.githubusercontent.com:sub": f"repo:{owner}@*/{repo_name}@*:ref:refs/heads/main"
                     },
                 },
             ),
