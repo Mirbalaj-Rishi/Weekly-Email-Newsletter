@@ -14,10 +14,11 @@ from constructs import Construct
 
 
 class NewsletterStack(Stack):
-    """Weekly newsletter: Lambda (content stub + SES send), triggered by
-    EventBridge (on AWS) on a weekly schedule, reading its recipient list from an
-    SSM SecureString parameter that this stack does not create or populate
-    (CloudFormation cannot manage SecureString values — see README)."""
+    """Weekly newsletter: Lambda (content APIs + SES send), triggered by
+    EventBridge on a weekly schedule, reading its recipient list and content
+    API keys from SSM SecureString parameters that this stack does not
+    create or populate (CloudFormation cannot manage SecureString values —
+    see README)."""
 
     def __init__(
         self,
@@ -27,6 +28,8 @@ class NewsletterStack(Stack):
         sender_email: str,
         recipient_emails: list[str],
         recipients_param_name: str,
+        nasa_api_key_param_name: str,
+        tmdb_api_key_param_name: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -64,6 +67,20 @@ class NewsletterStack(Stack):
             parameter_name=recipients_param_name,
         )
 
+        # Same treatment as the recipient list: these hold real API keys,
+        # so they're SecureString parameters this stack only references,
+        # never creates or populates (see README for the one-time setup).
+        nasa_api_key_param = ssm.StringParameter.from_secure_string_parameter_attributes(
+            self,
+            "NasaApiKeyParam",
+            parameter_name=nasa_api_key_param_name,
+        )
+        tmdb_api_key_param = ssm.StringParameter.from_secure_string_parameter_attributes(
+            self,
+            "TmdbApiKeyParam",
+            parameter_name=tmdb_api_key_param_name,
+        )
+
         # --- Lambda -------------------------------------------------------
         log_group = logs.LogGroup(
             self,
@@ -78,16 +95,23 @@ class NewsletterStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_12,
             handler="handler.main",
             code=_lambda.Code.from_asset("../lambda"),
-            timeout=Duration.seconds(30),
+            # 60s covers the recipients lookup plus roughly 8 sequential
+            # external HTTP calls (joke + APOD + up to 6 TMDB calls) and
+            # the SES send, with headroom for slow responses.
+            timeout=Duration.seconds(60),
             memory_size=256,
             log_group=log_group,
             environment={
                 "RECIPIENTS_PARAM_NAME": recipients_param_name,
                 "SENDER_EMAIL": sender_email,
+                "NASA_API_KEY_PARAM_NAME": nasa_api_key_param_name,
+                "TMDB_API_KEY_PARAM_NAME": tmdb_api_key_param_name,
             },
         )
 
         recipients_param.grant_read(fn)
+        nasa_api_key_param.grant_read(fn)
+        tmdb_api_key_param.grant_read(fn)
 
         fn.add_to_role_policy(
             iam.PolicyStatement(

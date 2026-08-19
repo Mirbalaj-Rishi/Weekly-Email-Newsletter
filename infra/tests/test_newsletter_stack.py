@@ -12,6 +12,8 @@ def _synth_template() -> Template:
         sender_email="sender@example.com",
         recipient_emails=["recipient@example.com"],
         recipients_param_name="/newsletter/recipients",
+        nasa_api_key_param_name="/newsletter/nasa-api-key",
+        tmdb_api_key_param_name="/newsletter/tmdb-api-key",
         env=cdk.Environment(account="123456789012", region="us-east-1"),
     )
     return Template.from_stack(stack)
@@ -22,6 +24,26 @@ def test_lambda_function_created():
     template.has_resource_properties(
         "AWS::Lambda::Function",
         {"Handler": "handler.main", "Runtime": "python3.12"},
+    )
+
+
+def test_lambda_timeout_covers_external_api_calls():
+    template = _synth_template()
+    template.has_resource_properties("AWS::Lambda::Function", {"Timeout": 60})
+
+
+def test_lambda_has_content_api_key_param_names_configured():
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::Lambda::Function",
+        {
+            "Environment": {
+                "Variables": {
+                    "NASA_API_KEY_PARAM_NAME": "/newsletter/nasa-api-key",
+                    "TMDB_API_KEY_PARAM_NAME": "/newsletter/tmdb-api-key",
+                }
+            }
+        },
     )
 
 

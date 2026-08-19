@@ -25,3 +25,6 @@ Thumbs.db
 
 #extra
 extra/
+
+# Local newsletter preview output
+newsletter_preview.html

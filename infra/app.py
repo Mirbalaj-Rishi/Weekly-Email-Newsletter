@@ -22,6 +22,12 @@ recipient_emails = [
 recipients_param_name = os.environ.get(
     "RECIPIENTS_PARAM_NAME", "/newsletter/recipients"
 )
+nasa_api_key_param_name = os.environ.get(
+    "NASA_API_KEY_PARAM_NAME", "/newsletter/nasa-api-key"
+)
+tmdb_api_key_param_name = os.environ.get(
+    "TMDB_API_KEY_PARAM_NAME", "/newsletter/tmdb-api-key"
+)
 
 env = cdk.Environment(
     account=os.environ.get("CDK_DEFAULT_ACCOUNT"),
@@ -40,6 +46,8 @@ if sender_email:
         sender_email=sender_email,
         recipient_emails=recipient_emails,
         recipients_param_name=recipients_param_name,
+        nasa_api_key_param_name=nasa_api_key_param_name,
+        tmdb_api_key_param_name=tmdb_api_key_param_name,
         env=env,
     )
 else:

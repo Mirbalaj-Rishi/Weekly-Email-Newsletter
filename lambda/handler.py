@@ -24,6 +24,23 @@ def _get_recipients() -> list[str]:
     return [addr.strip() for addr in raw.split(",") if addr.strip()]
 
 
+def _load_content_api_keys() -> None:
+    """Fetch the NASA/TMDB API keys from SSM and expose them the same way
+    content/apis.py expects to find them locally (plain env vars), so the
+    same functions work identically whether run in Lambda or previewed via
+    local_preview.py.
+    """
+    for env_var, param_name_var in (
+        ("NASA_API_KEY", "NASA_API_KEY_PARAM_NAME"),
+        ("TMDB_API_KEY", "TMDB_API_KEY_PARAM_NAME"),
+    ):
+        param_name = os.environ.get(param_name_var)
+        if not param_name:
+            continue
+        response = ssm.get_parameter(Name=param_name, WithDecryption=True)
+        os.environ[env_var] = response["Parameter"]["Value"]
+
+
 def main(event, context):
     """Lambda entry point: build this week's newsletter and send it via SES.
 
@@ -33,6 +50,7 @@ def main(event, context):
     """
     sender = os.environ["SENDER_EMAIL"]
     recipients = _get_recipients()
+    _load_content_api_keys()
 
     # Fail loudly rather than silently sending to nobody — an empty
     # recipient list almost always means the SSM parameter was never set
