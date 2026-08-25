@@ -60,8 +60,13 @@ def _apod_section_html() -> str:
     title = html.escape(apod["title"])
     explanation = html.escape(apod["explanation"])
     if apod["media_type"] == "image":
+        # NASA doesn't report image dimensions, so the true aspect ratio is
+        # unknown at send time — height="auto" as an HTML attribute (not
+        # just CSS) is the standard fix for clients like the Gmail app that
+        # can otherwise fail to render responsive images reliably without
+        # an explicit height attribute alongside width.
         media_html = (
-            f'<img src="{html.escape(apod["url"])}" alt="{title}" width="{INNER_WIDTH}" '
+            f'<img src="{html.escape(apod["url"])}" alt="{title}" width="{INNER_WIDTH}" height="auto" '
             f'style="width:100%; max-width:{INNER_WIDTH}px; height:auto; display:block; '
             f'border-radius:6px; margin:0 0 12px;">'
         )
