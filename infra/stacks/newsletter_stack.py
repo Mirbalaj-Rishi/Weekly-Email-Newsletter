@@ -82,9 +82,18 @@ class NewsletterStack(Stack):
         )
 
         # --- Lambda -------------------------------------------------------
+        # Given an explicit name so the log group below can be named to
+        # match AWS's standard "/aws/lambda/<function-name>" convention.
+        # Without this, the Lambda console's "View CloudWatch logs" link
+        # (which always assumes that convention) breaks with a
+        # ResourceNotFoundException even though the function is logging
+        # fine to its actual, CDK-auto-generated log group name.
+        function_name = "weekly-newsletter"
+
         log_group = logs.LogGroup(
             self,
             "NewsletterFunctionLogs",
+            log_group_name=f"/aws/lambda/{function_name}",
             retention=logs.RetentionDays.ONE_MONTH,
             removal_policy=RemovalPolicy.DESTROY,
         )
@@ -92,6 +101,7 @@ class NewsletterStack(Stack):
         fn = _lambda.Function(
             self,
             "NewsletterFunction",
+            function_name=function_name,
             runtime=_lambda.Runtime.PYTHON_3_12,
             handler="handler.main",
             code=_lambda.Code.from_asset("../lambda"),

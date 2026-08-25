@@ -65,3 +65,17 @@ def test_log_group_has_bounded_retention():
     template.has_resource_properties(
         "AWS::Logs::LogGroup", {"RetentionInDays": 30}
     )
+
+
+def test_log_group_name_matches_lambda_console_convention():
+    # The Lambda console's "View CloudWatch logs" link always assumes
+    # "/aws/lambda/<function-name>" regardless of what log group is
+    # actually attached — so a mismatch here silently breaks that link
+    # even though the function logs correctly to whatever name we give it.
+    template = _synth_template()
+    template.has_resource_properties(
+        "AWS::Logs::LogGroup", {"LogGroupName": "/aws/lambda/weekly-newsletter"}
+    )
+    template.has_resource_properties(
+        "AWS::Lambda::Function", {"FunctionName": "weekly-newsletter"}
+    )
