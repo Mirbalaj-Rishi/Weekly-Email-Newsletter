@@ -4,7 +4,11 @@ Doesn't touch AWS at all (no boto3, no SSM, no SES) — just calls the same
 content-generation code the Lambda uses and writes the result to an HTML
 file you can open in a browser.
 
-Usage (from the lambda/ directory):
+Lives outside lambda/ deliberately: CDK packages the entire lambda/
+directory as the deployment asset (see infra/stacks/newsletter_stack.py),
+so dev/test-only tooling like this script shouldn't live in there.
+
+Usage (from the testing/ directory):
     NASA_API_KEY=... TMDB_API_KEY=... python local_preview.py
 (PowerShell: $env:NASA_API_KEY = "..."; $env:TMDB_API_KEY = "..."; python local_preview.py)
 
@@ -13,11 +17,16 @@ and the movies section reports "Content unavailable" (matching real
 runtime behavior when a key is missing), so the script still runs.
 """
 
+import sys
 from pathlib import Path
 
-from content.generator import generate_newsletter_html
+REPO_ROOT = Path(__file__).parent.parent
+LAMBDA_DIR = REPO_ROOT / "lambda"
+sys.path.insert(0, str(LAMBDA_DIR))
 
-OUTPUT_PATH = Path(__file__).parent.parent / "newsletter_preview.html"
+from content.generator import generate_newsletter_html  # noqa: E402
+
+OUTPUT_PATH = REPO_ROOT / "newsletter_preview.html"
 
 
 def main() -> None:

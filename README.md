@@ -158,10 +158,10 @@ cdk synth
 
 ### Previewing the newsletter before deploying
 
-`lambda/local_preview.py` renders the newsletter locally — no AWS credentials, no SSM, no SES — and writes the result to `newsletter_preview.html` (gitignored) at the repo root, which you can open in a browser:
+`testing/local_preview.py` renders the newsletter locally — no AWS credentials, no SSM, no SES — and writes the result to `newsletter_preview.html` (gitignored) at the repo root, which you can open in a browser. It lives outside `lambda/` deliberately, since CDK packages the entire `lambda/` directory as the Lambda deployment asset — dev-only tooling shouldn't ship to AWS:
 
 ```
-cd lambda
+cd testing
 python local_preview.py
 ```
 
