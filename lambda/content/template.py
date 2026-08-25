@@ -30,15 +30,6 @@ CONTENT_WIDTH = 600
 INNER_WIDTH = CONTENT_WIDTH - 2 * 24
 
 
-def truncate(text: str, max_len: int = 200) -> str:
-    """Shortens text to max_len characters (on a word boundary where
-    possible), appending an ellipsis, so cards stay scannable."""
-    if len(text) <= max_len:
-        return text
-    cut = text[:max_len].rsplit(" ", 1)[0]
-    return f"{cut}…"
-
-
 def render_card_row(inner_html: str) -> str:
     """Wraps a section's content in a table row with consistent padding
     and a bottom divider, so each section in generator.py doesn't repeat

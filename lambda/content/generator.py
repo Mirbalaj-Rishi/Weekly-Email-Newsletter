@@ -12,7 +12,6 @@ from content.template import (
     INNER_WIDTH,
     render_card_row,
     render_email_shell,
-    truncate,
 )
 
 # TMDB's API Terms of Use require this exact attribution wherever their data
@@ -91,7 +90,7 @@ def _apod_section_html() -> str:
 def _movie_card_html(movie: dict) -> str:
     title = html.escape(movie["title"])
     certification = html.escape(movie["certification"])
-    overview = html.escape(truncate(movie["overview"], 200))
+    overview = html.escape(movie["overview"])
     return f"""\
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px;">
           <tr>
